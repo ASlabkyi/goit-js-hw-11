@@ -50,7 +50,7 @@ async function handleFormSubmit(e) {
 }
 
 async function addPage() {
-  moreBtnEl.disabled = true;
+  moreBtnEl.style.display = 'none';
   page += 1;
   const resp = await axios.get('https://pixabay.com/api/', {
     params: {
@@ -73,7 +73,7 @@ async function addPage() {
 
   galleryEl.insertAdjacentHTML('beforeend', markupGallery(dataHits));
   lightBox.refresh();
-  moreBtnEl.disabled = false;
+  moreBtnEl.style.display = 'block';
 
   const maxPage = Math.ceil(resp.data.totalHits / 40);
 
