@@ -1,7 +1,8 @@
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import simpleLightbox from 'simplelightbox';
 import { Notify } from 'notiflix';
-import axios from 'axios';
+import { markupGallery } from './markup';
+import { getImages } from './api';
 
 const searchFormEl = document.querySelector('#search-form');
 const galleryEl = document.querySelector('.gallery');
@@ -21,17 +22,7 @@ async function handleFormSubmit(e) {
   }
 
   page = 1;
-  const resp = await axios.get('https://pixabay.com/api/', {
-    params: {
-      key: '33988995-a64a390706535bd3a9c78052f',
-      q: searchQuery,
-      image_type: 'photo',
-      orientation: 'horizontal',
-      safesearch: true,
-      page: page,
-      per_page: 40,
-    },
-  });
+  const resp = await getImages(searchQuery, page);
 
   Notify.success(`Hooray! We found ${resp.data.totalHits} images.`);
 
@@ -52,24 +43,8 @@ async function handleFormSubmit(e) {
 async function addPage() {
   moreBtnEl.style.display = 'none';
   page += 1;
-  const resp = await axios.get('https://pixabay.com/api/', {
-    params: {
-      key: '33988995-a64a390706535bd3a9c78052f',
-      q: searchQuery,
-      image_type: 'photo',
-      orientation: 'horizontal',
-      safesearch: true,
-      page: page,
-      per_page: 40,
-    },
-  });
+  const resp = await getImages(searchQuery, page);
   const dataHits = resp.data.hits;
-
-  if (dataHits.length === 0) {
-    Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.'
-    );
-  }
 
   galleryEl.insertAdjacentHTML('beforeend', markupGallery(dataHits));
   lightBox.refresh();
@@ -83,41 +58,6 @@ async function addPage() {
     );
     moreBtnEl.style.display = 'none';
   }
-}
-
-function markupGallery(dataHits) {
-  return dataHits
-    .map(
-      ({
-        webformatURL,
-        largeImageURL,
-        tags,
-        likes,
-        views,
-        comments,
-        downloads,
-      }) =>
-        `<div class="photo-card">
-        <a class="gallery__item" href="${largeImageURL}">
-        <img class="gallery__image" src="${webformatURL}" alt="${tags}" loading="lazy" />
-        </a>
-        <div class="info">
-          <p class="info-item">
-            <b>Likes: ${likes}</b>
-          </p>
-          <p class="info-item">
-            <b>Views: ${views}</b>
-          </p>
-          <p class="info-item">
-            <b>Comments: ${comments}</b>
-          </p>
-          <p class="info-item">
-            <b>Downloads: ${downloads}</b>
-          </p>
-        </div>
-      </div>`
-    )
-    .join('');
 }
 
 const lightBox = new SimpleLightbox('.gallery a', {
